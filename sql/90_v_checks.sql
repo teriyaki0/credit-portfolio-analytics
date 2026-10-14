@@ -202,6 +202,21 @@ checks (check_order, check_name, report_date, on_fail, passed, details) AS (
         GROUP BY report_date
     ) b USING (report_date)
 
+    UNION ALL
+    SELECT 53, 'migration_complete', x.report_date, 'FAIL', x.in_matrix = y.on_both_dates,
+           format('кредитов в матрице миграции: %s; есть на эту и прошлую дату: %s', x.in_matrix, y.on_both_dates)
+    FROM (
+        SELECT report_date, sum(loans) AS in_matrix FROM reporting.v_dpd_migration GROUP BY report_date
+    ) x
+    JOIN (
+        SELECT c.report_date, count(*) AS on_both_dates
+        FROM reporting.v_loan_snapshot c
+        JOIN reporting.v_loan_snapshot p
+          ON p.loan_id = c.loan_id
+         AND p.report_date = (SELECT max(report_date) FROM reporting.v_loan_snapshot WHERE report_date < c.report_date)
+        GROUP BY c.report_date
+    ) y USING (report_date)
+
     -- 6. Согласованность данных между срезами (WARN) ------------------------------------
 
     UNION ALL

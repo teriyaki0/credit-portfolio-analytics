@@ -1,0 +1,70 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Матрица миграции между корзинами просрочки от прошлого среза к последнему. Источник: reporting.v_dpd_migration.",
+  "title": {"text": "Миграция по корзинам просрочки", "subtitle": "Куда перешла сумма корзины прошлого среза; в ячейке — доля суммы и число кредитов"},
+  "data": {"url": "data/dpd_migration.json"},
+  "transform": [
+    {"calculate": "time(toDate(datum.report_date))", "as": "t"},
+    {"joinaggregate": [{"op": "max", "field": "t", "as": "t_last"}]},
+    {"filter": "datum.t === datum.t_last"},
+    {"calculate": "slice(datum.prev_date, 8, 10) + '.' + slice(datum.prev_date, 5, 7) + '.' + slice(datum.prev_date, 0, 4)", "as": "prev_label"},
+    {"calculate": "slice(datum.report_date, 8, 10) + '.' + slice(datum.report_date, 5, 7) + '.' + slice(datum.report_date, 0, 4)", "as": "cur_label"},
+    {"calculate": "format(datum.from_share, '.0%') + ' · ' + datum.loans", "as": "cell_text"},
+    {"calculate": "datum.from_amount_kzt / 1e9", "as": "from_bn"},
+    {"calculate": "datum.to_amount_kzt / 1e9", "as": "to_bn"}
+  ],
+  "width": {"step": 84},
+  "height": {"step": 40},
+  "encoding": {
+    "x": {
+      "field": "to_state",
+      "type": "ordinal",
+      "sort": {"field": "to_order", "op": "min"},
+      "title": "Последний срез: просрочка, дней",
+      "scale": {"paddingInner": 0.06},
+      "axis": {"orient": "top", "labelAngle": 0, "domain": false, "ticks": false, "labelPadding": 6}
+    },
+    "y": {
+      "field": "from_state",
+      "type": "ordinal",
+      "sort": {"field": "from_order", "op": "min"},
+      "title": "Прошлый срез",
+      "scale": {"paddingInner": 0.06},
+      "axis": {"domain": false, "ticks": false, "labelPadding": 6}
+    }
+  },
+  "layer": [
+    {
+      "mark": {"type": "rect", "cornerRadius": 3},
+      "encoding": {
+        "color": {
+          "field": "from_share",
+          "type": "quantitative",
+          "scale": {"domain": [0, 1]},
+          "title": "Доля суммы корзины",
+          "legend": {"format": ".0%", "gradientLength": 160, "tickCount": 3}
+        },
+        "tooltip": [
+          {"field": "from_state", "title": "Было (прошлый срез)"},
+          {"field": "to_state", "title": "Стало (последний срез)"},
+          {"field": "prev_label", "title": "Прошлый срез"},
+          {"field": "cur_label", "title": "Последний срез"},
+          {"field": "loans", "title": "Кредитов"},
+          {"field": "from_bn", "title": "Сумма на прошлый срез, млрд ₸", "format": ",.2f"},
+          {"field": "from_share", "title": "Доля суммы корзины", "format": ".1%"},
+          {"field": "to_bn", "title": "Сумма на последний срез, млрд ₸", "format": ",.2f"}
+        ]
+      }
+    },
+    {
+      "transform": [{"filter": "datum.from_share < 0.5"}],
+      "mark": {"type": "text", "style": "cell-label"},
+      "encoding": {"text": {"field": "cell_text"}}
+    },
+    {
+      "transform": [{"filter": "datum.from_share >= 0.5"}],
+      "mark": {"type": "text", "style": "cell-label-strong"},
+      "encoding": {"text": {"field": "cell_text"}}
+    }
+  ]
+}

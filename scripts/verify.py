@@ -132,11 +132,27 @@ def compute():
                 issues[("dpd_reset_from_npl", x["date"])]["loans"] += 1
                 issues[("dpd_reset_from_npl", x["date"])]["amount_kzt"] += x["kzt"]
 
-    return dates, metrics, segments, issues
+    # Матрица миграции: состояние кредита на прошлую и текущую дату ('списан' — отдельное состояние).
+    def state(x):
+        if x["written_off"]:
+            return "списан"
+        d = x["dpd"]
+        return "0" if d == 0 else "1–30" if d <= 30 else "31–90" if d <= 90 else ">90"
+
+    migration = defaultdict(lambda: {"loans": 0, "from_amount_kzt": Decimal(0)})
+    for rows_by_date in by_loan.values():
+        ds = sorted(rows_by_date)
+        for prev_d, d in zip(ds, ds[1:]):
+            prev, cur = rows_by_date[prev_d], rows_by_date[d]
+            cell = migration[(d, state(prev), state(cur))]
+            cell["loans"] += 1
+            cell["from_amount_kzt"] += prev["kzt"]
+
+    return dates, metrics, segments, issues, migration
 
 
 def main():
-    dates, metrics, segments, issues = compute()
+    dates, metrics, segments, issues, migration = compute()
     failures = []
 
     def check(name, date, sql_value, py_value, tolerance=Decimal(0)):
@@ -180,6 +196,16 @@ def main():
         check(f"{r['rule']}:loans", r["report_date"], r["loans"], py["loans"])
         check(f"{r['rule']}:amount_kzt", r["report_date"], r["amount_kzt"], py["amount_kzt"])
         print(f"аномалия {r['rule']} {r['report_date']}: кредитов — {py['loans']}")
+
+    sql_migration = load_json("dpd_migration.json")
+    if len(sql_migration) != len(migration):
+        failures.append(f"ячеек матрицы миграции в SQL {len(sql_migration)}, в Python {len(migration)}")
+    for r in sql_migration:
+        py = migration[(r["report_date"], r["from_state"], r["to_state"])]
+        cell = f"migration:{r['from_state']}→{r['to_state']}"
+        check(f"{cell}:loans", r["report_date"], r["loans"], py["loans"])
+        check(f"{cell}:from_amount_kzt", r["report_date"], r["from_amount_kzt"], py["from_amount_kzt"])
+    print(f"матрица миграции: ячеек — {len(sql_migration)}, кредиты и суммы в каждой")
 
     if failures:
         print("\nРАСХОЖДЕНИЯ:")

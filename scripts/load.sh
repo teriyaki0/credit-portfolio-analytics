@@ -80,6 +80,7 @@ echo
 export_json risk_metrics.json        "SELECT * FROM reporting.v_risk_metrics" "report_date"
 export_json risk_metrics_change.json "SELECT * FROM reporting.v_risk_metrics_change" "report_date, sort_order"
 export_json risk_by_segment.json     "SELECT * FROM reporting.v_risk_by_segment" "segment_type, segment, report_date"
+export_json dpd_migration.json       "SELECT * FROM reporting.v_dpd_migration" "report_date, from_order, to_order"
 export_json top_groups.json          "SELECT * FROM reporting.v_group_exposure WHERE exposure_rank <= 10" "report_date, exposure_rank"
 export_json data_quality.json        "SELECT * FROM reporting.v_data_quality_summary" "sort_order, report_date"
 export_json checks.json              "SELECT * FROM reporting.v_checks" "check_order, report_date NULLS FIRST, details"

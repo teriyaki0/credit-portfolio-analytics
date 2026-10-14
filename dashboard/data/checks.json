@@ -204,6 +204,13 @@
     },
     {
         "status": "PASS",
+        "details": "кредитов в матрице миграции: 2000; есть на эту и прошлую дату: 2000",
+        "check_name": "migration_complete",
+        "check_order": 53,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
         "details": "кредитов, у которых между срезами поменялись заёмщик, группа, отрасль, программа, валюта или даты: 0",
         "check_name": "loan_attributes_stable",
         "check_order": 61,

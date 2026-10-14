@@ -17,6 +17,9 @@
     --border: rgba(11, 11, 11, 0.10);
     --series: #2a78d6;
     --series-prev: #86b6ef;
+    --seq-low: #cde2fb;
+    --seq-high: #0d366b;
+    --on-seq-high: #ffffff;
     --good: #006300;
     --bad: #d03b3b;
     --warn-bg: #fff6e0;
@@ -36,6 +39,9 @@
       --border: rgba(255, 255, 255, 0.10);
       --series: #3987e5;
       --series-prev: #1c5cab;
+      --seq-low: #184f95;
+      --seq-high: #b7d3f6;
+      --on-seq-high: #0b0b0b;
       --good: #0ca30c;
       --bad: #e66767;
       --warn-bg: #2e2510;
@@ -54,6 +60,9 @@
     --border: rgba(255, 255, 255, 0.10);
     --series: #3987e5;
     --series-prev: #1c5cab;
+    --seq-low: #184f95;
+    --seq-high: #b7d3f6;
+    --on-seq-high: #0b0b0b;
     --good: #0ca30c;
     --bad: #e66767;
     --warn-bg: #2e2510;
@@ -97,6 +106,10 @@
   .checks { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
   .pill { border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; font-size: 13px; }
   .pill b { font-weight: 600; }
+  .migration { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  .migration .chart { flex: 0 1 auto; min-width: 0; }
+  .migration .explain { flex: 1 1 260px; color: var(--ink-2); font-size: 13px; }
+  .migration .explain p { margin: 0 0 8px; }
   .issue { margin-top: 16px; }
   .issue h3 { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
   .issue p { margin: 0; color: var(--ink-2); font-size: 13px; }
@@ -129,6 +142,18 @@
     </section>
   </div>
 
+  <section class="card migration">
+    <div id="migration" class="chart"></div>
+    <div class="explain">
+      <h2>Как читать</h2>
+      <p>Строка — корзина просрочки на прошлую дату, столбец — на последнюю. В ячейке — какая доля суммы
+        корзины туда перешла и сколько кредитов.</p>
+      <p>За месяц просрочка либо растёт на одну корзину, либо обнуляется после погашения. Переход из «&gt;90»
+        прямо в «0» означает, что заёмщик погасил многомесячную просрочку, — такие кредиты проверены отдельно
+        в блоке «Качество данных».</p>
+    </div>
+  </section>
+
   <section class="card">
     <div id="by-sector" class="chart"></div>
     <details><summary>Таблица</summary><div class="table-wrap" id="by-sector-table"></div></details>
@@ -157,6 +182,7 @@
     ["kpi", "specs/kpi.json"],
     ["trend", "specs/trend.json"],
     ["concentration", "specs/concentration.json"],
+    ["migration", "specs/migration.json"],
     ["by-sector", "specs/by_sector.json"],
     ["by-program", "specs/by_program.json"],
   ];
@@ -178,6 +204,7 @@
       page: css("--page"), surface: css("--surface"), ink: css("--ink"), ink2: css("--ink-2"), muted: css("--muted"),
       grid: css("--grid"), axis: css("--axis"), series: css("--series"), prev: css("--series-prev"),
       good: css("--good"), bad: css("--bad"),
+      seqLow: css("--seq-low"), seqHigh: css("--seq-high"), onSeqHigh: css("--on-seq-high"),
     };
     const text = (color, size, weight) => ({color, fontSize: size, fontWeight: weight || "normal"});
     return {
@@ -192,7 +219,7 @@
         labelLimit: 220,
       },
       legend: {orient: "top", direction: "horizontal", labelColor: t.ink2, titleColor: t.muted, labelFontSize: 12, titleFontSize: 11, titleFontWeight: "normal", symbolType: "circle"},
-      range: {ordinal: [t.prev, t.series]},
+      range: {ordinal: [t.prev, t.series], heatmap: [t.seqLow, t.seqHigh]},
       bar: {color: t.series, size: 18, cornerRadiusEnd: 4},
       point: {filled: true, size: 90, stroke: t.surface, strokeWidth: 2, opacity: 1},
       style: {
@@ -204,6 +231,9 @@
         "delta-bad": text(t.bad, 13, 600),
         "delta-neutral": text(t.ink2, 13),
         "value-label": text(t.ink2, 12),
+        // Подпись в ячейке тепловой карты: на светлой ячейке — основной текст, на насыщенной — контрастный.
+        "cell-label": text(t.ink, 12),
+        "cell-label-strong": text(t.onSeqHigh, 12, 600),
         // У линий и прямоугольников цвет задаётся через color: stroke в style
         // перекрывается цветом по умолчанию из config.rule / config.rect.
         "dumbbell-link": {color: t.axis, strokeWidth: 2},
