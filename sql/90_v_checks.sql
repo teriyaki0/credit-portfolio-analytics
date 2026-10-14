@@ -251,11 +251,37 @@ checks (check_order, check_name, report_date, on_fail, passed, details) AS (
                   round(par90_ratio_reported * 100, 2), round(par90_ratio_alt * 100, 2),
                   round(provision_kzt_reported / 1e9, 2), round(provision_kzt_alt / 1e9, 2))
     FROM reporting.v_data_quality_summary
+),
+-- Справочник: название проверки для людей и группа, в которой её показывать.
+-- Для аномалий название берётся из v_data_quality_summary.
+catalog (check_name, title, area) AS (
+    VALUES
+    ('raw_required_fields',          'Обязательные поля заполнены',                     'Исходные данные'),
+    ('raw_value_domains',            'Флаги 0/1, просрочка и суммы не отрицательные',   'Исходные данные'),
+    ('fx_unique_per_day',            'Один курс на день и валюту',                      'Исходные данные'),
+    ('loan_unique_per_date',         'Одна строка на кредит и дату',                    'Исходные данные'),
+    ('fx_rate_on_report_date',       'Курс есть именно на дату среза',                  'Курс'),
+    ('reconcile_rows',               'Строки: raw = портфель + списанные + дубли',      'Сверка с источником'),
+    ('reconcile_amount_by_currency', 'Суммы в валюте кредита совпадают с raw',          'Сверка с источником'),
+    ('reconcile_portfolio_kzt',      'Портфель в тенге = raw × курс на дату',           'Сверка с источником'),
+    ('risk_ordering',                'PAR90 ≤ PAR30 и PAR90 ≤ NPL',                     'Определения'),
+    ('restructured_is_npl_50pct',    'Реструктуризированные — в NPL со ставкой 50%',    'Определения'),
+    ('dpd_boundaries',               'Границы 30 и 90 дней — «строго больше»',          'Определения'),
+    ('provision_bounds',             'Провизии от 1% до 50% портфеля',                  'Определения'),
+    ('segments_sum_to_total',        'Разрезы в сумме дают итог',                       'Согласованность'),
+    ('top10_groups',                 'Топ-10 — ровно 10 групп, сумма совпадает',        'Согласованность'),
+    ('migration_complete',           'В матрице миграции все кредиты',                  'Согласованность'),
+    ('loan_attributes_stable',       'Атрибуты кредита не меняются между срезами',      'Данные между срезами'),
+    ('borrower_single_group',        'Заёмщик входит в одну группу',                    'Данные между срезами')
 )
 SELECT
-    check_order,
-    check_name,
-    report_date,
-    CASE WHEN coalesce(passed, false) THEN 'PASS' ELSE on_fail END AS status,
-    details
-FROM checks;
+    c.check_order,
+    c.check_name,
+    c.report_date,
+    CASE WHEN coalesce(c.passed, false) THEN 'PASS' ELSE c.on_fail END AS status,
+    c.details,
+    coalesce(k.title, dq.title, c.check_name)                         AS title,
+    coalesce(k.area, CASE WHEN dq.rule IS NOT NULL THEN 'Аномалии данных' END, 'Прочее') AS area
+FROM checks c
+LEFT JOIN catalog k ON k.check_name = c.check_name
+LEFT JOIN (SELECT DISTINCT rule, title FROM reporting.v_data_quality_summary) dq ON dq.rule = c.check_name;

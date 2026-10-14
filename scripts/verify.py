@@ -28,6 +28,10 @@ def load_json(name):
         return json.load(f, parse_float=Decimal)
 
 
+def dpd_bucket(dpd):
+    return "0" if dpd == 0 else "1–30" if dpd <= 30 else "31–90" if dpd <= 90 else ">90"
+
+
 def provision_rate(is_npl, dpd):
     if is_npl:
         return Decimal("0.50")
@@ -67,6 +71,7 @@ def compute():
             "restructured": restructured,
             "maturity_date": r["maturity_date"],
             "dpd": dpd,
+            "dpd_bucket": dpd_bucket(dpd),
             "kzt": kzt,
             "par30": kzt if dpd > 30 else Decimal(0),
             "par90": kzt if dpd > 90 else Decimal(0),
@@ -100,7 +105,7 @@ def compute():
 
     segments = defaultdict(lambda: defaultdict(Decimal))
     for x in live:
-        for seg_type in ("sector", "program"):
+        for seg_type in ("sector", "program", "dpd_bucket"):
             s = segments[(x["date"], seg_type, x[seg_type])]
             s["portfolio_kzt"] += x["kzt"]
             s["npl_kzt"] += x["npl"]
@@ -134,10 +139,7 @@ def compute():
 
     # Матрица миграции: состояние кредита на прошлую и текущую дату ('списан' — отдельное состояние).
     def state(x):
-        if x["written_off"]:
-            return "списан"
-        d = x["dpd"]
-        return "0" if d == 0 else "1–30" if d <= 30 else "31–90" if d <= 90 else ">90"
+        return "списан" if x["written_off"] else x["dpd_bucket"]
 
     migration = defaultdict(lambda: {"loans": 0, "from_amount_kzt": Decimal(0)})
     for rows_by_date in by_loan.values():
@@ -189,7 +191,7 @@ def main():
         py = segments[(r["report_date"], r["segment_type"], r["segment"])]
         for k in ("portfolio_kzt", "npl_kzt", "provision_kzt"):
             check(f"{r['segment_type']}:{r['segment']}:{k}", r["report_date"], r[k], py[k])
-    print(f"разрезы по отрасли и программе: {len(sql_segments)} строк, портфель, NPL и провизии")
+    print(f"разрезы по отрасли, программе и корзине просрочки: {len(sql_segments)} строк, портфель, NPL и провизии")
 
     for r in load_json("data_quality.json"):
         py = issues[(r["rule"], r["report_date"])]

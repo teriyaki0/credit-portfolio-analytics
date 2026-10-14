@@ -1,5 +1,5 @@
--- Риск-метрики в разрезе отрасли и программы.
--- Grain: report_date × segment_type × segment. Оба разреза в одной вьюхе через GROUPING SETS,
+-- Риск-метрики в разрезе отрасли, программы и корзины просрочки.
+-- Grain: report_date × segment_type × segment. Все разрезы в одной вьюхе через GROUPING SETS,
 -- чтобы дашборд и проверки брали их из одного места.
 
 CREATE OR REPLACE VIEW reporting.v_risk_by_segment AS
@@ -8,8 +8,16 @@ WITH s AS (
         report_date,
         -- Разрез определяем через GROUPING(), а не coalesce(sector, program):
         -- иначе кредит с пустой отраслью попал бы в «отрасль» с названием программы.
-        CASE WHEN GROUPING(sector) = 0 THEN 'sector' ELSE 'program' END AS segment_type,
-        CASE WHEN GROUPING(sector) = 0 THEN sector   ELSE program   END AS segment,
+        CASE
+            WHEN GROUPING(sector)  = 0 THEN 'sector'
+            WHEN GROUPING(program) = 0 THEN 'program'
+            ELSE 'dpd_bucket'
+        END                         AS segment_type,
+        CASE
+            WHEN GROUPING(sector)  = 0 THEN sector
+            WHEN GROUPING(program) = 0 THEN program
+            ELSE dpd_bucket
+        END                         AS segment,
         count(*)                    AS loans,
         sum(portfolio_kzt)          AS portfolio_kzt,
         sum(par30_kzt)              AS par30_kzt,
@@ -17,7 +25,7 @@ WITH s AS (
         sum(npl_kzt)                AS npl_kzt,
         sum(provision_kzt)          AS provision_kzt
     FROM reporting.v_portfolio_clean
-    GROUP BY GROUPING SETS ((report_date, sector), (report_date, program))
+    GROUP BY GROUPING SETS ((report_date, sector), (report_date, program), (report_date, dpd_bucket))
 )
 SELECT
     s.*,
