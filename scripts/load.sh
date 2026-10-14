@@ -36,3 +36,7 @@ if [ "$fails" -ne 0 ]; then
   exit 1
 fi
 echo "Проверки пройдены. Предупреждений: $warns (кредиты — reporting.v_data_quality_issues)."
+
+# Проверка проверок: типичные ошибки должны ронять свои проверки (всё откатывается).
+echo
+psql -q -f /tests/check_mutations.sql

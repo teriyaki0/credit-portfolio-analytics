@@ -15,7 +15,8 @@ services:
       timeout: 3s
       retries: 30
 
-  # Применяет sql/*.sql по порядку и сверяет число строк в raw с CSV.
+  # Применяет sql/*.sql по порядку, сверяет число строк в raw с CSV, печатает проверки
+  # (падает на FAIL) и прогоняет мутационные тесты проверок.
   # Повторный запуск безопасен: docker compose run --rm loader
   loader:
     image: postgres:16
@@ -32,6 +33,7 @@ services:
       - ./sql:/sql:ro
       - ./data:/data:ro
       - ./scripts:/scripts:ro
+      - ./tests:/tests:ro
     entrypoint: ["sh", "/scripts/load.sh"]
 
 volumes:

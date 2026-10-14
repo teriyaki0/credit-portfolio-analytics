@@ -44,7 +44,7 @@ checks (check_order, check_name, report_date, on_fail, passed, details) AS (
 
     UNION ALL
     SELECT 14, 'loan_unique_per_date', report_date, 'FAIL', n = 0,
-           format('кредитов с несколькими разными строками на дату: %s', n)
+           format('кредитов с несколькими строками на дату: %s', n)
     FROM (
         SELECT report_date, count(*) - count(DISTINCT loan_id) AS n
         FROM reporting.v_loan_snapshot
@@ -55,7 +55,7 @@ checks (check_order, check_name, report_date, on_fail, passed, details) AS (
 
     UNION ALL
     SELECT 21, 'fx_rate_on_report_date', report_date, 'FAIL', n = 0,
-           format('кредитов без курса на дату среза: %s; применён курс %s', n, rates)
+           format('кредитов без курса на дату среза: %s; применён курс: %s', n, coalesce(rates, 'нет'))
     FROM (
         SELECT report_date,
                count(*) FILTER (WHERE fx_rate IS NULL) AS n,
@@ -128,7 +128,7 @@ checks (check_order, check_name, report_date, on_fail, passed, details) AS (
 
     UNION ALL
     SELECT 42, 'restructured_is_npl_50pct', report_date, 'FAIL', bad = 0,
-           format('реструктуризированных: %s, из них с просрочкой ≤ 90 дн.: %s — все в NPL по ставке 50%%; нарушений: %s',
+           format('реструктуризированных: %s, из них с просрочкой ≤ 90 дн.: %s; не в NPL или ставка не 50%%: %s',
                   total, low_dpd, bad)
     FROM (
         SELECT report_date,
@@ -142,7 +142,7 @@ checks (check_order, check_name, report_date, on_fail, passed, details) AS (
 
     UNION ALL
     SELECT 43, 'dpd_boundaries', report_date, 'FAIL', bad = 0,
-           format('просрочка ровно 30 дн.: %s, ровно 90 дн.: %s — не входят в PAR30 / PAR90 («больше»); нарушений шкалы: %s',
+           format('просрочка ровно 30 дн.: %s, ровно 90 дн.: %s (по определению не в PAR30 / PAR90); нарушений границ и шкалы: %s',
                   d30, d90, bad)
     FROM (
         SELECT report_date,
