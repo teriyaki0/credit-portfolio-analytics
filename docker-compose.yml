@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: bi
+      POSTGRES_PASSWORD: bi
+      POSTGRES_DB: credit
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bi -d credit"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # Применяет sql/*.sql по порядку и сверяет число строк в raw с CSV.
+  # Повторный запуск безопасен: docker compose run --rm loader
+  loader:
+    image: postgres:16
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: bi
+      PGPASSWORD: bi
+      PGDATABASE: credit
+      PGOPTIONS: "-c client_min_messages=warning"
+    volumes:
+      - ./sql:/sql:ro
+      - ./data:/data:ro
+      - ./scripts:/scripts:ro
+    entrypoint: ["sh", "/scripts/load.sh"]
+
+volumes:
+  pgdata:
