@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Качество данных и сверка</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="charts.js"></script>
+</head>
+
+<body>
+  <header>
+    <div class="head">
+      <a class="eyebrow" href="index.html" id="back">← Риск-сводка портфеля</a>
+      <h1>Качество данных и сверка</h1>
+      <p class="period" id="period"></p>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Можно ли доверять цифрам</h2>
+      <p class="sub">Страница для команды данных и владельца источника. Цифры риск-сводки посчитаны по определению
+        и не скорректированы; здесь — как они проверены и что в данных требует ответа источника.</p>
+      <p id="checks-summary"></p>
+      <ol class="sub">
+        <li><b>Сверка с источником в SQL:</b> строки и суммы витрины пересчитываются заново от <code>raw.*</code>.</li>
+        <li><b>Независимый пересчёт:</b> метрики, разрезы, миграция и аномалии считаются второй раз из CSV на Python
+          и сравниваются с данными дашборда до копейки.</li>
+        <li><b>Проверка проверок:</b> типичные ошибки нарочно вносятся в витрину — каждая обязана уронить свою проверку.
+        </li>
+        <li><b>Публикация после проверок:</b> при любом FAIL данные для дашборда не выгружаются.</li>
+      </ol>
+    </section>
+
+    <section class="card" id="anomalies">
+      <h2>Аномалии данных</h2>
+      <p class="sub">Подозрительные данные в витрине не исправляются. Для каждой аномалии — сколько кредитов затронуто,
+        как изменились бы метрики при другой трактовке и вопрос к владельцу данных.
+        Список кредитов — <code>reporting.v_data_quality_issues</code>.</p>
+      <div id="anomaly-blocks"></div>
+    </section>
+
+    <section class="card">
+      <h2>Все проверки</h2>
+      <p class="sub">FAIL — посчитать верно нельзя, данные не публикуются. WARN — данные подозрительные, но метрики
+        посчитаны по определению. Источник — <code>reporting.v_checks</code>.</p>
+      <div id="checks-table"></div>
+    </section>
+  </main>
+
+  <script>
+    const badge = (s) => `<span class="badge ${s.toLowerCase()}">${esc(s)}</span>`;
+    const lowerFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
+
+    async function render() {
+      const [metrics, quality, checks] = await Promise.all([
+        json("data/risk_metrics.json"), json("data/data_quality.json"), json("data/checks.json"),
+      ]);
+      document.getElementById("back").textContent = "← " + reportTitle(metrics);
+      document.getElementById("period").textContent = periodText(metrics);
+
+      const count = (s) => checks.filter((c) => c.status === s).length;
+      document.getElementById("checks-summary").innerHTML = `Проверок: <b>${checks.length}</b> · ` +
+        ["PASS", "WARN", "FAIL"].map((s) => `${badge(s)} <b>${count(s)}</b>`).join(" · ");
+
+      const rules = [...new Set(quality.filter((q) => q.loans > 0).map((q) => q.rule))];
+      document.getElementById("anomaly-blocks").innerHTML = rules.map((rule) => {
+        const rows = quality.filter((q) => q.rule === rule);
+        const r0 = rows[0];
+        return `<h3 id="${esc(rule)}">${esc(r0.title)}</h3>
+        <p class="sub"><b>В отчёте:</b> ${esc(lowerFirst(r0.treatment))}. <b>Если иначе:</b> ${esc(lowerFirst(r0.alternative))}.<br>
+        <b>Вопрос к источнику:</b> ${esc(r0.question)}</p>` + table(rows, [
+          { title: "Дата", value: (r) => ruDate(r.report_date) },
+          { title: "Кредитов", num: true, value: (r) => r.loans },
+          { title: "Сумма, млрд ₸", num: true, value: (r) => bn(r.amount_kzt) },
+          { title: "Доля портфеля", num: true, value: (r) => pct(r.portfolio_share) },
+          { title: "NPL: отчёт → если иначе", num: true, value: (r) => pct(r.npl_ratio_reported) + " → " + pct(r.npl_ratio_alt) },
+          { title: "PAR90", num: true, value: (r) => pct(r.par90_ratio_reported) + " → " + pct(r.par90_ratio_alt) },
+          { title: "Провизии, млрд ₸", num: true, value: (r) => bn(r.provision_kzt_reported) + " → " + bn(r.provision_kzt_alt) },
+        ]);
+      }).join("") + `<p class="note">Цифры риск-сводки не скорректированы. Значения «если иначе» показывают
+      чувствительность и нужны для вопроса владельцу данных, а не для подмены отчёта.</p>`;
+
+      const areas = [...new Set(checks.map((c) => c.area))];
+      document.getElementById("checks-table").innerHTML = areas.map((area) => `<h3>${esc(area)}</h3>` +
+        table(checks.filter((c) => c.area === area), [
+          { title: "Статус", html: true, width: "72px", value: (r) => badge(r.status) },
+          { title: "Проверка", width: "30%", value: (r) => r.title },
+          { title: "Дата", width: "96px", value: (r) => (r.report_date ? ruDate(r.report_date) : "все") },
+          { title: "Подробности", value: (r) => r.details },
+        ])).join("");
+    }
+
+    render().catch((e) => {
+      document.getElementById("checks-table").innerHTML = `<p class="error">Не удалось загрузить данные: ${esc(e.message)}</p>`;
+    });
+  </script>
+</body>
+
+</html>

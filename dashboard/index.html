@@ -1,374 +1,126 @@
 <!doctype html>
 <html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Риск-сводка портфеля</title>
-<style>
-  :root {
-    color-scheme: light;
-    --page: #f9f9f7;
-    --surface: #fcfcfb;
-    --ink: #0b0b0b;
-    --ink-2: #52514e;
-    --muted: #898781;
-    --grid: #e1e0d9;
-    --axis: #c3c2b7;
-    --border: rgba(11, 11, 11, 0.10);
-    --series: #2a78d6;
-    --series-prev: #86b6ef;
-    --seq-low: #cde2fb;
-    --seq-high: #0d366b;
-    --on-seq-high: #ffffff;
-    --good: #006300;
-    --bad: #d03b3b;
-    --warn-bg: #fff6e0;
-    --warn-ink: #7a5200;
-    --font: system-ui, -apple-system, "Segoe UI", sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --page: #0d0d0d;
-      --surface: #1a1a19;
-      --ink: #ffffff;
-      --ink-2: #c3c2b7;
-      --muted: #898781;
-      --grid: #2c2c2a;
-      --axis: #383835;
-      --border: rgba(255, 255, 255, 0.10);
-      --series: #3987e5;
-      --series-prev: #1c5cab;
-      --seq-low: #184f95;
-      --seq-high: #b7d3f6;
-      --on-seq-high: #0b0b0b;
-      --good: #0ca30c;
-      --bad: #e66767;
-      --warn-bg: #2e2510;
-      --warn-ink: #fab219;
-    }
-  }
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-    --page: #0d0d0d;
-    --surface: #1a1a19;
-    --ink: #ffffff;
-    --ink-2: #c3c2b7;
-    --muted: #898781;
-    --grid: #2c2c2a;
-    --axis: #383835;
-    --border: rgba(255, 255, 255, 0.10);
-    --series: #3987e5;
-    --series-prev: #1c5cab;
-    --seq-low: #184f95;
-    --seq-high: #b7d3f6;
-    --on-seq-high: #0b0b0b;
-    --good: #0ca30c;
-    --bad: #e66767;
-    --warn-bg: #2e2510;
-    --warn-ink: #fab219;
-  }
 
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--page);
-    color: var(--ink);
-    font: 14px/1.45 var(--font);
-  }
-  main { max-width: 1120px; margin: 0 auto; padding: 24px 16px 40px; }
-  header h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
-  header p { margin: 0; color: var(--ink-2); }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-top: 16px;
-    min-width: 0;
-  }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .grid-2 > .card { margin-top: 16px; }
-  @media (max-width: 920px) { .grid-2 { grid-template-columns: 1fr; gap: 0; } }
-  /* vega-embed делает контейнер inline-block, и широкий график растягивает страницу —
-     делаем блок с прокруткой внутри карточки. */
-  .chart.vega-embed { display: block; overflow-x: auto; }
-  .chart.fill { width: 100%; }
-  h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
-  .sub { color: var(--ink-2); margin: 0 0 12px; }
-  details { margin-top: 8px; color: var(--ink-2); }
-  summary { cursor: pointer; font-size: 13px; }
-  table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 13px; }
-  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
-  th { color: var(--ink-2); font-weight: 600; }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .table-wrap { overflow-x: auto; }
-  .checks { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
-  .pill { border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; font-size: 13px; }
-  .pill b { font-weight: 600; }
-  .migration { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
-  .migration .chart { flex: 0 1 auto; min-width: 0; }
-  .migration .explain { flex: 1 1 260px; color: var(--ink-2); font-size: 13px; }
-  .migration .explain p { margin: 0 0 8px; }
-  .issue { margin-top: 16px; }
-  .issue h3 { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
-  .issue p { margin: 0; color: var(--ink-2); font-size: 13px; }
-  .issue p b { color: var(--ink); font-weight: 600; }
-  .note { background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 8px 12px; margin-top: 12px; font-size: 13px; }
-  footer { color: var(--muted); font-size: 12px; margin-top: 20px; }
-  footer code { font-size: 12px; }
-  .error { color: var(--bad); }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/vega@5.30.0/build/vega.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0/build/vega-lite.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0/build/vega-embed.min.js"></script>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Риск-сводка портфеля</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/vega@5.30.0/build/vega.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0/build/vega-lite.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0/build/vega-embed.min.js"></script>
+  <script src="charts.js"></script>
 </head>
+
 <body>
-<main>
   <header>
-    <h1>Риск-сводка кредитного портфеля</h1>
-    <p id="period">Суммы в тенге по курсу на дату среза, без списанных кредитов</p>
+    <div class="head">
+      <div class="eyebrow">Кредитный портфель</div>
+      <h1 id="title">Риск-сводка портфеля</h1>
+      <p class="period" id="period"></p>
+    </div>
   </header>
 
-  <section class="card">
-    <div id="kpi" class="chart"></div>
-    <p class="note" id="kpi-note" hidden></p>
-  </section>
-
-  <div class="grid-2">
-    <section class="card"><div id="trend" class="chart fill"></div></section>
+  <main>
     <section class="card">
-      <div id="concentration" class="chart fill"></div>
-      <details><summary>Таблица</summary><div class="table-wrap" id="concentration-table"></div></details>
+      <div id="kpi" class="chart"></div>
+      <p class="footnote" id="kpi-note" hidden></p>
     </section>
-  </div>
 
-  <section class="card migration">
-    <div id="migration" class="chart"></div>
-    <div class="explain">
-      <h2>Как читать</h2>
-      <p>Строка — корзина просрочки на прошлую дату, столбец — на последнюю. В ячейке — какая доля суммы
-        корзины туда перешла и сколько кредитов.</p>
-      <p>За месяц просрочка либо растёт на одну корзину, либо обнуляется после погашения. Переход из «&gt;90»
-        прямо в «0» означает, что заёмщик погасил многомесячную просрочку, — такие кредиты проверены отдельно
-        в блоке «Качество данных».</p>
+    <div class="grid-2">
+      <section class="card">
+        <div id="overdue" class="chart"></div>
+      </section>
+      <section class="card">
+        <div id="concentration" class="chart"></div>
+        <details>
+          <summary>Таблица</summary>
+          <div id="concentration-table"></div>
+        </details>
+      </section>
     </div>
-  </section>
 
-  <section class="card">
-    <div id="by-sector" class="chart"></div>
-    <details><summary>Таблица</summary><div class="table-wrap" id="by-sector-table"></div></details>
-  </section>
+    <section class="card">
+      <div id="migration" class="chart"></div>
+    </section>
 
-  <section class="card">
-    <div id="by-program" class="chart"></div>
-    <details><summary>Таблица</summary><div class="table-wrap" id="by-program-table"></div></details>
-  </section>
+    <section class="card">
+      <div id="by-sector" class="chart"></div>
+      <details>
+        <summary>Таблица</summary>
+        <div id="by-sector-table"></div>
+      </details>
+    </section>
 
-  <section class="card" id="quality">
-    <h2>Качество данных</h2>
-    <p class="sub">Метрики посчитаны по определению. Ниже — что в данных выглядит подозрительно и как изменились бы цифры при другой трактовке.</p>
-    <div class="checks" id="checks-summary"></div>
-    <div class="table-wrap" id="quality-table"></div>
-  </section>
+    <section class="card">
+      <div id="by-program" class="chart"></div>
+      <details>
+        <summary>Таблица</summary>
+        <div id="by-program-table"></div>
+      </details>
+    </section>
 
-  <footer>
-    Данные: <code>dashboard/data/*.json</code> — выгрузка вьюх <code>reporting.*</code> после пройденных проверок;
-    спеки Vega-Lite: <code>dashboard/specs/*.json</code>. Определения и сверка — в README.
-  </footer>
-</main>
+    <footer>
+      Как считались и проверялись цифры — <a href="quality.html">качество данных и сверка</a>; определения — в README.
+      Данные — выгрузка вьюх <code>reporting.*</code> после пройденных проверок, спеки — <code>dashboard/specs/</code>.
+    </footer>
+  </main>
 
-<script>
-  const SPECS = [
-    ["kpi", "specs/kpi.json"],
-    ["trend", "specs/trend.json"],
-    ["concentration", "specs/concentration.json"],
-    ["migration", "specs/migration.json"],
-    ["by-sector", "specs/by_sector.json"],
-    ["by-program", "specs/by_program.json"],
-  ];
+  <script>
+    const SPECS = [
+      ["kpi", "specs/kpi.json"], ["overdue", "specs/overdue.json"], ["concentration", "specs/concentration.json"],
+      ["migration", "specs/migration.json"], ["by-sector", "specs/by_sector.json"], ["by-program", "specs/by_program.json"],
+    ];
 
-  // Русская локаль d3-format: «10,01%», «484,7».
-  const FORMAT_LOCALE = {decimal: ",", thousands: " ", grouping: [3], currency: ["", " ₸"]};
+    async function renderText() {
+      const [metrics, segments, groups, quality] = await Promise.all([
+        json("data/risk_metrics.json"), json("data/risk_by_segment.json"),
+        json("data/top_groups.json"), json("data/data_quality.json"),
+      ]);
+      const { last } = lastDates(metrics);
+      document.getElementById("title").textContent = reportTitle(metrics);
+      document.getElementById("period").textContent = periodText(metrics);
 
-  const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      for (const type of ["sector", "program"]) {
+        const rows = segments.filter((s) => s.segment_type === type)
+          .sort((a, b) => a.segment.localeCompare(b.segment, "ru") || a.report_date.localeCompare(b.report_date));
+        document.getElementById(`by-${type}-table`).innerHTML = table(rows, [
+          { title: type === "sector" ? "Отрасль" : "Программа", value: (r) => r.segment },
+          { title: "Дата", value: (r) => ruDate(r.report_date) },
+          { title: "Портфель, млрд ₸", num: true, value: (r) => bn(r.portfolio_kzt) },
+          { title: "PAR30", num: true, value: (r) => pct(r.par30_ratio) },
+          { title: "PAR90", num: true, value: (r) => pct(r.par90_ratio) },
+          { title: "NPL", num: true, value: (r) => pct(r.npl_ratio) },
+          { title: "Провизии, млрд ₸", num: true, value: (r) => bn(r.provision_kzt) },
+        ]);
+      }
+      document.getElementById("concentration-table").innerHTML = table(groups.filter((g) => g.report_date === last), [
+        { title: "Место", num: true, value: (r) => r.exposure_rank },
+        { title: "Группа", value: (r) => r.group_id },
+        { title: "Заёмщиков", num: true, value: (r) => r.borrowers },
+        { title: "Экспозиция, млрд ₸", num: true, value: (r) => nf(2).format(r.exposure_kzt / 1e9) },
+        { title: "Доля портфеля", num: true, value: (r) => pct(r.share) },
+      ]);
 
-  function isDark() {
-    const forced = document.documentElement.dataset.theme;
-    if (forced) return forced === "dark";
-    return matchMedia("(prefers-color-scheme: dark)").matches;
-  }
-
-  // Конфиг Vega строится из CSS-токенов: спеки не содержат цветов и работают в обеих темах.
-  function vegaConfig() {
-    const t = {
-      page: css("--page"), surface: css("--surface"), ink: css("--ink"), ink2: css("--ink-2"), muted: css("--muted"),
-      grid: css("--grid"), axis: css("--axis"), series: css("--series"), prev: css("--series-prev"),
-      good: css("--good"), bad: css("--bad"),
-      seqLow: css("--seq-low"), seqHigh: css("--seq-high"), onSeqHigh: css("--on-seq-high"),
-    };
-    const text = (color, size, weight) => ({color, fontSize: size, fontWeight: weight || "normal"});
-    return {
-      background: null,
-      font: css("--font"),
-      padding: 2,
-      view: {stroke: null},
-      title: {anchor: "start", color: t.ink, fontSize: 15, fontWeight: 600, subtitleColor: t.ink2, subtitleFontSize: 13, subtitlePadding: 4, offset: 12},
-      axis: {
-        domainColor: t.axis, tickColor: t.axis, gridColor: t.grid, gridWidth: 1, domainWidth: 1,
-        labelColor: t.ink2, labelFontSize: 12, titleColor: t.muted, titleFontSize: 11, titleFontWeight: "normal",
-        labelLimit: 220,
-      },
-      legend: {orient: "top", direction: "horizontal", labelColor: t.ink2, titleColor: t.muted, labelFontSize: 12, titleFontSize: 11, titleFontWeight: "normal", symbolType: "circle"},
-      range: {ordinal: [t.prev, t.series], heatmap: [t.seqLow, t.seqHigh]},
-      bar: {color: t.series, size: 18, cornerRadiusEnd: 4},
-      point: {filled: true, size: 90, stroke: t.surface, strokeWidth: 2, opacity: 1},
-      style: {
-        "kpi-tile": {color: t.page, cornerRadius: 8},
-        "kpi-label": text(t.ink2, 13),
-        "kpi-value": text(t.ink, 24, 600),
-        "kpi-prev": text(t.muted, 12),
-        "delta-good": text(t.good, 13, 600),
-        "delta-bad": text(t.bad, 13, 600),
-        "delta-neutral": text(t.ink2, 13),
-        "value-label": text(t.ink2, 12),
-        // Подпись в ячейке тепловой карты: на светлой ячейке — основной текст, на насыщенной — контрастный.
-        "cell-label": text(t.ink, 12),
-        "cell-label-strong": text(t.onSeqHigh, 12, 600),
-        // У линий и прямоугольников цвет задаётся через color: stroke в style
-        // перекрывается цветом по умолчанию из config.rule / config.rect.
-        "dumbbell-link": {color: t.axis, strokeWidth: 2},
-        "reference": {color: t.muted, strokeWidth: 1},
-      },
-    };
-  }
-
-  // Плитки KPI: три в ряд на всю ширину карточки, но не уже 200px (дальше — прокрутка в карточке).
-  function fitKpiTiles(spec, containerWidth) {
-    const param = (name) => spec.params.find((p) => p.name === name);
-    const gap = param("gap").value;
-    const tile = Math.max(200, Math.floor((containerWidth - 2 * gap - 4) / 3));
-    param("tile_w").value = tile;
-    spec.width = 3 * tile + 2 * gap;
-  }
-
-  async function renderCharts() {
-    const options = {
-      config: vegaConfig(),
-      formatLocale: FORMAT_LOCALE,
-      renderer: "svg",
-      actions: {export: true, source: true, compiled: false, editor: false},
-      tooltip: {theme: isDark() ? "dark" : "light"},
-    };
-    for (const [id, url] of SPECS) {
-      try {
-        const spec = await (await fetch(url)).json();
-        if (id === "kpi") fitKpiTiles(spec, document.getElementById(id).clientWidth);
-        await vegaEmbed("#" + id, spec, {...options, actions: id === "kpi" ? false : options.actions});
-      } catch (e) {
-        document.getElementById(id).innerHTML = `<p class="error">Не удалось отрисовать ${url}: ${e.message}</p>`;
+      // Сноска к KPI: вопросы к данным могут изменить NPL. Мелко, как примечание в отчёте.
+      const issues = quality.filter((q) => q.report_date === last && q.loans > 0);
+      if (issues.length) {
+        const alts = issues.map((q) => q.npl_ratio_alt);
+        const note = document.getElementById("kpi-note");
+        note.hidden = false;
+        note.innerHTML = `Примечание. Показатели посчитаны по данным источника как есть. По части кредитов к источнику ` +
+          `есть вопросы; в зависимости от ответов NPL на ${esc(ruDate(last))} может составить ` +
+          `от ${esc(pct(Math.min(...alts)))} до ${esc(pct(Math.max(...alts)))}. ` +
+          `<a href="quality.html#anomalies">Подробнее о данных</a>`;
       }
     }
-  }
 
-  // ---- таблицы и блок качества данных (те же JSON, что у графиков) ----
-
-  const nf = (digits) => new Intl.NumberFormat("ru-RU", {minimumFractionDigits: digits, maximumFractionDigits: digits});
-  const bn = (x) => nf(1).format(x / 1e9);
-  const pct = (x) => nf(2).format(x * 100) + "%";
-  const ruDate = (iso) => iso.slice(8, 10) + "." + iso.slice(5, 7) + "." + iso.slice(0, 4);
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
-
-  async function json(url) {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(url + ": " + r.status);
-    return r.json();
-  }
-
-  function table(rows, columns) {
-    const head = columns.map((c) => `<th class="${c.num ? "num" : ""}">${esc(c.title)}</th>`).join("");
-    const body = rows.map((r) => "<tr>" + columns.map((c) =>
-      `<td class="${c.num ? "num" : ""}">${esc(c.value(r))}</td>`).join("") + "</tr>").join("");
-    return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
-  }
-
-  async function renderTables() {
-    const [metrics, segments, groups, quality, checks] = await Promise.all([
-      json("data/risk_metrics.json"), json("data/risk_by_segment.json"), json("data/top_groups.json"),
-      json("data/data_quality.json"), json("data/checks.json"),
-    ]);
-    const dates = metrics.map((m) => m.report_date).sort();
-    const last = dates[dates.length - 1];
-    document.getElementById("period").textContent =
-      `Срезы: ${dates.map(ruDate).join(" и ")} · изменение к ${ruDate(dates[dates.length - 2] || last)} · ` +
-      "суммы в тенге по курсу на дату среза, без списанных кредитов";
-
-    for (const type of ["sector", "program"]) {
-      const rows = segments.filter((s) => s.segment_type === type)
-        .sort((a, b) => a.segment.localeCompare(b.segment, "ru") || a.report_date.localeCompare(b.report_date));
-      document.getElementById(`by-${type}-table`).innerHTML = table(rows, [
-        {title: type === "sector" ? "Отрасль" : "Программа", value: (r) => r.segment},
-        {title: "Дата", value: (r) => ruDate(r.report_date)},
-        {title: "Портфель, млрд ₸", num: true, value: (r) => bn(r.portfolio_kzt)},
-        {title: "PAR30", num: true, value: (r) => pct(r.par30_ratio)},
-        {title: "PAR90", num: true, value: (r) => pct(r.par90_ratio)},
-        {title: "NPL", num: true, value: (r) => pct(r.npl_ratio)},
-        {title: "Провизии, млрд ₸", num: true, value: (r) => bn(r.provision_kzt)},
-      ]);
-    }
-
-    document.getElementById("concentration-table").innerHTML = table(groups.filter((g) => g.report_date === last), [
-      {title: "Место", num: true, value: (r) => r.exposure_rank},
-      {title: "Группа", value: (r) => r.group_id},
-      {title: "Заёмщиков", num: true, value: (r) => r.borrowers},
-      {title: "Экспозиция, млрд ₸", num: true, value: (r) => nf(2).format(r.exposure_kzt / 1e9)},
-      {title: "Доля портфеля", num: true, value: (r) => pct(r.share)},
-    ]);
-
-    const count = (s) => checks.filter((c) => c.status === s).length;
-
-    // Зелёная стрелка у KPI не должна выглядеть безусловным улучшением, если есть предупреждения.
-    if (count("WARN") > 0) {
-      const note = document.getElementById("kpi-note");
-      note.hidden = false;
-      note.textContent = `Предупреждений о качестве данных: ${count("WARN")}. Метрики посчитаны по определению; ` +
-        "как они изменятся, если источник подтвердит аномалии, — в блоке «Качество данных» внизу.";
-    }
-    document.getElementById("checks-summary").innerHTML =
-      `<span class="pill">Проверок: <b>${checks.length}</b></span>` +
-      `<span class="pill">PASS: <b>${count("PASS")}</b></span>` +
-      `<span class="pill">WARN: <b>${count("WARN")}</b></span>` +
-      `<span class="pill">FAIL: <b>${count("FAIL")}</b></span>`;
-
-    // Блок на каждую аномалию: что не так, как посчитано, вопрос к источнику и цифры по датам.
-    const rules = [...new Set(quality.filter((q) => q.loans > 0).map((q) => q.rule))];
-    document.getElementById("quality-table").innerHTML = rules.map((rule) => {
-      const rows = quality.filter((q) => q.rule === rule);
-      const r0 = rows[0];
-      const lowerFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
-      return `<div class="issue">
-        <h3>${esc(r0.title)}</h3>
-        <p><b>В отчёте:</b> ${esc(lowerFirst(r0.treatment))}. <b>Если иначе:</b> ${esc(lowerFirst(r0.alternative))}.<br>
-        <b>Вопрос к источнику:</b> ${esc(r0.question)}</p>` +
-        table(rows, [
-          {title: "Дата", value: (r) => ruDate(r.report_date)},
-          {title: "Кредитов", num: true, value: (r) => r.loans},
-          {title: "Сумма, млрд ₸", num: true, value: (r) => bn(r.amount_kzt)},
-          {title: "Доля портфеля", num: true, value: (r) => pct(r.portfolio_share)},
-          {title: "NPL: отчёт → если иначе", num: true, value: (r) => pct(r.npl_ratio_reported) + " → " + pct(r.npl_ratio_alt)},
-          {title: "PAR90", num: true, value: (r) => pct(r.par90_ratio_reported) + " → " + pct(r.par90_ratio_alt)},
-          {title: "Провизии, млрд ₸", num: true, value: (r) => bn(r.provision_kzt_reported) + " → " + bn(r.provision_kzt_alt)},
-        ]) + "</div>";
-    }).join("") +
-      `<p class="note">Цифры дашборда не скорректированы: они посчитаны по данным источника и определениям задания. ` +
-      `Значения «если иначе» показывают чувствительность и нужны для вопроса владельцу данных, а не для подмены отчёта.</p>`;
-  }
-
-  renderCharts();
-  renderTables().catch((e) => {
-    document.getElementById("quality-table").innerHTML = `<p class="error">Не удалось загрузить данные: ${esc(e.message)}</p>`;
-  });
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderCharts);
-</script>
+    const render = () => renderCharts(SPECS);
+    render();
+    renderText().catch((e) => { document.getElementById("period").textContent = "Не удалось загрузить данные: " + e.message; });
+    let timer;
+    addEventListener("resize", () => { clearTimeout(timer); timer = setTimeout(render, 250); });
+  </script>
 </body>
+
 </html>

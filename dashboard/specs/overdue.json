@@ -1,0 +1,49 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Просроченный портфель по корзинам на каждую дату среза. Источник: reporting.v_risk_by_segment (segment_type = dpd_bucket).",
+  "title": {"text": "Просрочка по корзинам", "subtitle": "Доля портфеля в каждой корзине просрочки, дней"},
+  "data": {"url": "data/risk_by_segment.json"},
+  "transform": [
+    {"filter": "datum.segment_type === 'dpd_bucket' && datum.segment !== '0'"},
+    {"calculate": "slice(datum.report_date, 8, 10) + '.' + slice(datum.report_date, 5, 7) + '.' + slice(datum.report_date, 0, 4)", "as": "date_label"},
+    {"calculate": "indexof(['1–30', '31–90', '>90'], datum.segment)", "as": "bucket_order"},
+    {"calculate": "datum.portfolio_kzt / 1e9", "as": "portfolio_bn"}
+  ],
+  "width": "container",
+  "height": 240,
+  "encoding": {
+    "x": {
+      "field": "segment",
+      "type": "ordinal",
+      "sort": {"field": "bucket_order", "op": "min"},
+      "title": null,
+      "axis": {"labelAngle": 0, "domain": true, "ticks": false, "labelPadding": 8}
+    },
+    "xOffset": {"field": "date_label", "type": "ordinal", "sort": "ascending"},
+    "y": {
+      "field": "portfolio_share",
+      "type": "quantitative",
+      "title": null,
+      "axis": {"format": ".0%", "tickCount": 4, "domain": false, "ticks": false}
+    }
+  },
+  "layer": [
+    {
+      "mark": {"type": "bar", "size": 24},
+      "encoding": {
+        "color": {"field": "date_label", "type": "ordinal", "title": "Дата среза", "sort": "ascending"},
+        "tooltip": [
+          {"field": "segment", "title": "Просрочка, дней"},
+          {"field": "date_label", "title": "Дата среза"},
+          {"field": "portfolio_share", "title": "Доля портфеля", "format": ".2%"},
+          {"field": "portfolio_bn", "title": "Сумма, млрд ₸", "format": ",.1f"},
+          {"field": "loans", "title": "Кредитов"}
+        ]
+      }
+    },
+    {
+      "mark": {"type": "text", "style": "value-label", "baseline": "bottom", "dy": -4},
+      "encoding": {"text": {"field": "portfolio_share", "format": ".1%"}}
+    }
+  ]
+}

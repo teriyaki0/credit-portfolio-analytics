@@ -1,7 +1,7 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "description": "Портфель и NPL по отраслям. Источник: reporting.v_risk_by_segment (segment_type = sector), линия — NPL всего портфеля из reporting.v_risk_metrics.",
-  "title": {"text": "По отраслям", "subtitle": "Портфель на последнюю дату и NPL отрасли по срезам; линия — NPL всего портфеля"},
+  "description": "Портфель, PAR30 и NPL по отраслям. Источник: reporting.v_risk_by_segment (segment_type = sector); линии — значения всего портфеля из reporting.v_risk_metrics.",
+  "title": {"text": "По отраслям", "subtitle": "Портфель на последнюю дату; PAR30 и NPL отрасли по срезам; линия — значение по всему портфелю"},
   "data": {"url": "data/risk_by_segment.json"},
   "transform": [
     {"filter": "datum.segment_type === 'sector'"},
@@ -12,11 +12,12 @@
     {"joinaggregate": [{"op": "max", "field": "last_portfolio_kzt", "as": "segment_size"}], "groupby": ["segment"]},
     {"calculate": "datum.portfolio_kzt / 1e9", "as": "portfolio_bn"}
   ],
-  "spacing": 16,
+  "usermeta": {"labelWidth": 110, "panelShares": [0.3, 0.35, 0.35]},
+  "spacing": 20,
   "resolve": {"scale": {"y": "shared"}},
   "hconcat": [
     {
-      "width": 280,
+      "width": 200,
       "height": {"step": 30},
       "transform": [{"filter": "datum.t === datum.t_last"}],
       "encoding": {
@@ -54,7 +55,52 @@
       ]
     },
     {
-      "width": 380,
+      "width": 250,
+      "height": {"step": 30},
+      "layer": [
+        {
+          "mark": {"type": "rule", "style": "dumbbell-link"},
+          "encoding": {
+            "y": {"field": "segment", "type": "nominal", "sort": {"field": "segment_size", "op": "max", "order": "descending"}, "axis": null},
+            "x": {"aggregate": "min", "field": "par30_ratio", "type": "quantitative"},
+            "x2": {"aggregate": "max", "field": "par30_ratio"}
+          }
+        },
+        {
+          "data": {"url": "data/risk_metrics.json"},
+          "transform": [
+            {"calculate": "time(toDate(datum.report_date))", "as": "t"},
+            {"joinaggregate": [{"op": "max", "field": "t", "as": "t_last"}]},
+            {"filter": "datum.t === datum.t_last"}
+          ],
+          "mark": {"type": "rule", "style": "reference"},
+          "encoding": {"x": {"field": "par30_ratio", "type": "quantitative"}}
+        },
+        {
+          "mark": {"type": "point"},
+          "encoding": {
+            "y": {"field": "segment", "type": "nominal", "sort": {"field": "segment_size", "op": "max", "order": "descending"}, "axis": null},
+            "x": {
+              "field": "par30_ratio",
+              "type": "quantitative",
+              "title": "PAR30, % портфеля отрасли",
+              "scale": {"zero": true},
+              "axis": {"format": ".0%", "tickCount": 4}
+            },
+            "color": {"field": "date_label", "type": "ordinal", "title": "Дата среза"},
+            "tooltip": [
+              {"field": "segment", "title": "Отрасль"},
+              {"field": "date_label", "title": "Дата среза"},
+              {"field": "par30_ratio", "title": "PAR30", "format": ".2%"},
+              {"field": "par90_ratio", "title": "PAR90", "format": ".2%"},
+              {"field": "npl_ratio", "title": "NPL", "format": ".2%"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "width": 250,
       "height": {"step": 30},
       "layer": [
         {
@@ -92,7 +138,6 @@
               {"field": "date_label", "title": "Дата среза"},
               {"field": "npl_ratio", "title": "NPL", "format": ".2%"},
               {"field": "par90_ratio", "title": "PAR90", "format": ".2%"},
-              {"field": "par30_ratio", "title": "PAR30", "format": ".2%"},
               {"field": "provision_ratio", "title": "Провизии / портфель", "format": ".2%"}
             ]
           }

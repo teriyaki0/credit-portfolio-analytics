@@ -1,0 +1,39 @@
+/* Оформление обеих страниц. Цвета графиков — в charts.js (конфиг Vega). */
+:root {
+  --page: #F7F8FA; --surface: #FFFFFF; --tile: #F3F5F8;
+  --ink: #0F1B2D; --ink-2: #475467; --muted: #8A94A6; --grid: #E6E9EF;
+  --accent: #1F4E8C; --warn-bg: #FFF7E6; --warn-ink: #7A4B00;
+  --pass-bg: #E8F5EE; --pass-ink: #1E7B4F; --fail-bg: #FDECEC; --fail-ink: #B42318;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+a { color: var(--accent); }
+main, .head { max-width: 1120px; margin: 0 auto; padding: 24px 16px; }
+header { border-bottom: 1px solid var(--grid); }
+.head { padding-top: 32px; }
+.eyebrow { color: var(--muted); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; }
+h1 { margin: 4px 0; font-size: 28px; font-weight: 600; }
+h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+h3 { margin: 16px 0 4px; font-size: 14px; font-weight: 600; }
+.period, .sub { margin: 0; color: var(--ink-2); font-size: 13px; }
+.sub { margin-bottom: 12px; }
+.card { background: var(--surface); border: 1px solid var(--grid); border-radius: 14px; padding: 16px 24px; margin-top: 16px; min-width: 0; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-2 > .card { margin-top: 16px; }
+@media (max-width: 920px) { .grid-2 { grid-template-columns: 1fr; gap: 0; } }
+.chart.vega-embed { display: block; width: 100%; overflow-x: auto; }   /* vega-embed по умолчанию inline-block */
+.footnote { margin: 12px 0 0; color: var(--muted); font-size: 12px; }
+.footnote a { color: inherit; }
+.note { background: var(--warn-bg); color: var(--warn-ink); border-radius: 10px; padding: 8px 12px; margin-top: 12px; font-size: 13px; }
+details { margin-top: 8px; color: var(--ink-2); font-size: 13px; }
+table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 13px; }
+table.fixed { table-layout: fixed; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; overflow-wrap: anywhere; }
+th { color: var(--ink-2); font-weight: 600; }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.badge { border-radius: 6px; padding: 1px 6px; font-size: 12px; font-weight: 600; }
+.pass { background: var(--pass-bg); color: var(--pass-ink); }
+.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.fail { background: var(--fail-bg); color: var(--fail-ink); }
+footer { color: var(--muted); font-size: 12px; margin-top: 24px; }
+.error { color: var(--fail-ink); }
