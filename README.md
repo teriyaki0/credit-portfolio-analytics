@@ -54,7 +54,7 @@
 Нужен только Docker.
 
 ```sh
-git clone <repo> && cd credit-portfolio-analytics
+git clone https://github.com/teriyaki0/credit-portfolio-analytics.git && cd credit-portfolio-analytics
 docker compose run --rm loader              # Postgres, загрузка, витрины, проверки, выгрузка
 docker compose run --rm --no-deps verify    # независимый пересчёт на Python и сверка с выгрузкой
 docker compose up -d web                    # дашборд: http://localhost:8080
