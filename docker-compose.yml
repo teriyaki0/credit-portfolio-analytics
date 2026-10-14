@@ -34,6 +34,7 @@ services:
       - ./data:/data:ro
       - ./scripts:/scripts:ro
       - ./tests:/tests:ro
+      - ./semantic:/semantic:ro
       - ./dashboard/data:/out
     entrypoint: ["sh", "/scripts/load.sh"]
 

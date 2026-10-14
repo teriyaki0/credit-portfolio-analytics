@@ -37,6 +37,31 @@ if [ "$fails" -ne 0 ]; then
 fi
 echo "Проверки пройдены. Предупреждений: $warns (кредиты — reporting.v_data_quality_issues)."
 
+# Семантические модели: источник существует, каждый column есть в нём, типы из формата.
+# Значения ключа из YAML построчно, без кавычек и \r (у моделей плоский формат).
+yaml_values() {
+  sed -n "s/^[[:space:]]*$1:[[:space:]]*//p" "$2" | tr -d "\"'\r"
+}
+
+echo
+for y in /semantic/*.yml; do
+  src=$(yaml_values source "$y")
+  cols=$(yaml_values column "$y" | tr '\n' ' ')
+  bad_types=$(yaml_values type "$y" | grep -v -x -E 'date|string|number|boolean|sum|avg|count' \
+    | sort -u | tr '\n' ' ' || true)
+  missing=$(psql -tA -c "
+    SELECT coalesce(string_agg(c, ', '), '')
+    FROM unnest(string_to_array(trim('$cols'), ' ')) AS c
+    WHERE NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema || '.' || table_name = '$src' AND column_name = c)")
+  if [ -n "$missing" ] || [ -n "$bad_types" ]; then
+    echo "FAIL $y: источник $src; нет колонок: ${missing:-—}; недопустимые типы: ${bad_types:-—}"
+    exit 1
+  fi
+  echo "OK   $y: источник $src, все колонки найдены ($(echo $cols | wc -w))"
+done
+
 # Проверка проверок: типичные ошибки должны ронять свои проверки (всё откатывается).
 echo
 psql -q -f /tests/check_mutations.sql
