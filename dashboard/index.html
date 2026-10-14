@@ -306,9 +306,10 @@
     document.getElementById("quality-table").innerHTML = rules.map((rule) => {
       const rows = quality.filter((q) => q.rule === rule);
       const r0 = rows[0];
+      const lowerFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
       return `<div class="issue">
         <h3>${esc(r0.title)}</h3>
-        <p><b>В отчёте:</b> ${esc(r0.treatment.toLowerCase())}. <b>Если иначе:</b> ${esc(r0.alternative.toLowerCase())}.<br>
+        <p><b>В отчёте:</b> ${esc(lowerFirst(r0.treatment))}. <b>Если иначе:</b> ${esc(lowerFirst(r0.alternative))}.<br>
         <b>Вопрос к источнику:</b> ${esc(r0.question)}</p>` +
         table(rows, [
           {title: "Дата", value: (r) => ruDate(r.report_date)},

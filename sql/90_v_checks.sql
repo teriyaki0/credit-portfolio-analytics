@@ -231,7 +231,7 @@ checks (check_order, check_name, report_date, on_fail, passed, details) AS (
     UNION ALL
     SELECT 62 + sort_order, rule, report_date, 'WARN', loans = 0,
            format('кредитов: %s, %s млрд ₸ (%s%% портфеля). Если «%s»: NPL %s%% → %s%%, PAR90 %s%% → %s%%, провизии %s → %s млрд ₸',
-                  loans, round(amount_kzt / 1e9, 2), round(portfolio_share * 100, 2), lower(alternative),
+                  loans, round(amount_kzt / 1e9, 2), round(portfolio_share * 100, 2), lower(left(alternative, 1)) || substr(alternative, 2),
                   round(npl_ratio_reported * 100, 2), round(npl_ratio_alt * 100, 2),
                   round(par90_ratio_reported * 100, 2), round(par90_ratio_alt * 100, 2),
                   round(provision_kzt_reported / 1e9, 2), round(provision_kzt_alt / 1e9, 2))

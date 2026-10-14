@@ -16,8 +16,29 @@ WITH history AS (
             PARTITION BY s.loan_id ORDER BY s.report_date
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
         )                                                                     AS written_off_on,
-        lag(s.days_past_due) OVER (PARTITION BY s.loan_id ORDER BY s.report_date) AS prev_days_past_due
+        lag(s.days_past_due)  OVER w                                        AS prev_days_past_due,
+        lag(s.report_date)    OVER w                                        AS prev_report_date,
+        lag(s.is_written_off) OVER w                                        AS prev_is_written_off,
+        lag(s.principal_orig) OVER w                                        AS prev_principal_orig
     FROM reporting.v_loan_snapshot s
+    WINDOW w AS (PARTITION BY s.loan_id ORDER BY s.report_date)
+),
+dpd_reset AS (
+    -- В прошлом срезе просрочка больше 90 дней, сейчас 0 — без реструктуризации и без списания.
+    -- Погасить многомесячную просрочку за один срез возможно, но тогда остаток падает больше
+    -- обычного платежа; details показывает, насколько он изменился.
+    -- Альтернатива: просрочку не погашали — она выросла на число дней между срезами.
+    SELECT
+        c.*,
+        h.prev_days_past_due,
+        c.principal_orig / h.prev_principal_orig - 1                            AS principal_change,
+        h.prev_days_past_due + (c.report_date - h.prev_report_date)            AS alt_days_past_due
+    FROM reporting.v_portfolio_clean c
+    JOIN history h USING (loan_id, report_date)
+    WHERE h.prev_days_past_due > 90
+      AND c.days_past_due = 0
+      AND NOT h.prev_is_written_off
+      AND NOT c.is_restructured
 ),
 written_off_reversed AS (
     -- Кредит был списан в одном из прошлых срезов, а на эту дату снова в портфеле.
@@ -77,4 +98,22 @@ SELECT
     CASE WHEN m.alt_days_past_due > 90 THEN m.portfolio_kzt ELSE 0 END,
     CASE WHEN m.alt_is_npl             THEN m.portfolio_kzt ELSE 0 END,
     m.portfolio_kzt * reporting.provision_rate(m.alt_is_npl, m.alt_days_past_due)
-FROM matured_alt m;
+FROM matured_alt m
+UNION ALL
+SELECT
+    'dpd_reset_from_npl',
+    d.report_date,
+    d.loan_id,
+    format('просрочка %s → 0 дн.; остаток %s%% к прошлому срезу',
+           d.prev_days_past_due, round(d.principal_change * 100, 1)),
+    d.portfolio_kzt,
+    d.par30_kzt,
+    d.par90_kzt,
+    d.npl_kzt,
+    d.provision_kzt,
+    d.portfolio_kzt,
+    d.portfolio_kzt,
+    d.portfolio_kzt,
+    d.portfolio_kzt,
+    d.portfolio_kzt * reporting.provision_rate(true, d.alt_days_past_due)
+FROM dpd_reset d;

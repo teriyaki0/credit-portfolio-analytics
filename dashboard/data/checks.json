@@ -243,5 +243,19 @@
         "check_name": "matured_dpd_inconsistent",
         "check_order": 64,
         "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "кредитов: 0, 0.00 млрд ₸ (0.00% портфеля). Если «просрочку не погашали: кредит остаётся в NPL»: NPL 11.85% → 11.85%, PAR90 6.24% → 6.24%, провизии 36.51 → 36.51 млрд ₸",
+        "check_name": "dpd_reset_from_npl",
+        "check_order": 65,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "WARN",
+        "details": "кредитов: 53, 14.90 млрд ₸ (3.07% портфеля). Если «просрочку не погашали: кредит остаётся в NPL»: NPL 10.01% → 13.09%, PAR90 4.46% → 7.54%, провизии 31.17 → 38.47 млрд ₸",
+        "check_name": "dpd_reset_from_npl",
+        "check_order": 65,
+        "report_date": "2026-10-01"
     }
 ]

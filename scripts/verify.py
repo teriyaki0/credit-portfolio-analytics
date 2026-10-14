@@ -64,6 +64,7 @@ def compute():
             "sector": r["sector"],
             "program": r["program"],
             "written_off": r["written_off"] == "1",
+            "restructured": restructured,
             "maturity_date": r["maturity_date"],
             "dpd": dpd,
             "kzt": kzt,
@@ -106,7 +107,11 @@ def compute():
             s["provision_kzt"] += x["provision"]
 
     # Аномалии: списан в прошлом срезе и снова в портфеле; срок погашения прошёл,
-    # а просрочка меньше числа дней после погашения.
+    # а просрочка меньше числа дней после погашения; просрочка > 90 дней обнулилась
+    # за один срез без реструктуризации.
+    by_loan = defaultdict(dict)
+    for x in loans:
+        by_loan[x["loan_id"]][x["date"]] = x
     written_off_dates = defaultdict(set)
     for x in loans:
         if x["written_off"]:
@@ -120,6 +125,12 @@ def compute():
         if days_since > 0 and x["dpd"] < days_since:
             issues[("matured_dpd_inconsistent", x["date"])]["loans"] += 1
             issues[("matured_dpd_inconsistent", x["date"])]["amount_kzt"] += x["kzt"]
+        earlier = [d for d in by_loan[x["loan_id"]] if d < x["date"]]
+        if earlier:
+            prev = by_loan[x["loan_id"]][max(earlier)]
+            if prev["dpd"] > 90 and not prev["written_off"] and x["dpd"] == 0 and not x["restructured"]:
+                issues[("dpd_reset_from_npl", x["date"])]["loans"] += 1
+                issues[("dpd_reset_from_npl", x["date"])]["amount_kzt"] += x["kzt"]
 
     return dates, metrics, segments, issues
 
