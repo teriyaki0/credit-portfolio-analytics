@@ -5,16 +5,26 @@
 -- а не долями: доли не аддитивны, их считаем как sum(числитель) / sum(portfolio_kzt)
 -- на нужном уровне агрегации (дата, отрасль, программа).
 
+-- Шкала провизий из определения: 50% для NPL (в т.ч. реструктуризированных без просрочки),
+-- 10% при просрочке 31–90 дней, 1% — до 30 дней. Одна функция для витрины и для
+-- сценариев в v_data_quality_issues, чтобы шкала не расходилась.
+CREATE OR REPLACE FUNCTION reporting.provision_rate(is_npl boolean, days_past_due integer)
+RETURNS numeric
+LANGUAGE sql
+IMMUTABLE
+AS $$
+    SELECT CASE
+        WHEN is_npl             THEN 0.50
+        WHEN days_past_due > 30 THEN 0.10
+        ELSE 0.01
+    END
+$$;
+
 CREATE OR REPLACE VIEW reporting.v_portfolio_clean AS
 WITH live AS (
     SELECT
         s.*,
-        -- 50% для NPL (в т.ч. реструктуризированных без просрочки), 10% при 31–90, 1% при 0–30.
-        CASE
-            WHEN s.is_npl             THEN 0.50
-            WHEN s.days_past_due > 30 THEN 0.10
-            ELSE 0.01
-        END AS provision_rate
+        reporting.provision_rate(s.is_npl, s.days_past_due) AS provision_rate
     FROM reporting.v_loan_snapshot s
     WHERE NOT s.is_written_off
 )
