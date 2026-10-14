@@ -22,3 +22,17 @@ check_rows() {
 
 check_rows raw.portfolio /data/portfolio.csv
 check_rows raw.fx /data/fx.csv
+
+echo
+psql -P pager=off -P footer=off -c "
+  SELECT status, check_name, to_char(report_date, 'DD.MM.YYYY') AS date, details
+  FROM reporting.v_checks
+  ORDER BY check_order, report_date NULLS FIRST, details"
+
+fails=$(psql -tA -c "SELECT count(*) FROM reporting.v_checks WHERE status = 'FAIL'")
+warns=$(psql -tA -c "SELECT count(*) FROM reporting.v_checks WHERE status = 'WARN'")
+if [ "$fails" -ne 0 ]; then
+  echo "Проверки не пройдены: FAIL — $fails. Цифры витрины публиковать нельзя."
+  exit 1
+fi
+echo "Проверки пройдены. Предупреждений: $warns (кредиты — reporting.v_data_quality_issues)."
