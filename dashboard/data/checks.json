@@ -1,0 +1,247 @@
+[
+    {
+        "status": "PASS",
+        "details": "строк с пустыми обязательными полями: 0",
+        "check_name": "raw_required_fields",
+        "check_order": 11,
+        "report_date": null
+    },
+    {
+        "status": "PASS",
+        "details": "строк с флагом не 0/1, отрицательной просрочкой или суммой: 0",
+        "check_name": "raw_value_domains",
+        "check_order": 12,
+        "report_date": null
+    },
+    {
+        "status": "PASS",
+        "details": "повторов «дата × валюта» в fx: 0",
+        "check_name": "fx_unique_per_day",
+        "check_order": 13,
+        "report_date": null
+    },
+    {
+        "status": "PASS",
+        "details": "кредитов с несколькими строками на дату: 0",
+        "check_name": "loan_unique_per_date",
+        "check_order": 14,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "кредитов с несколькими строками на дату: 0",
+        "check_name": "loan_unique_per_date",
+        "check_order": 14,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "кредитов без курса на дату среза: 0; применён курс: USD 478.3500",
+        "check_name": "fx_rate_on_report_date",
+        "check_order": 21,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "кредитов без курса на дату среза: 0; применён курс: USD 482.1000",
+        "check_name": "fx_rate_on_report_date",
+        "check_order": 21,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "2030 строк raw = 1975 в портфеле + 25 списано + 30 полных дублей",
+        "check_name": "reconcile_rows",
+        "check_order": 31,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "2030 строк raw = 1992 в портфеле + 8 списано + 30 полных дублей",
+        "check_name": "reconcile_rows",
+        "check_order": 31,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "KZT: raw без списанных 442873567966.00 = витрина 442873567966.00 (в валюте кредита)",
+        "check_name": "reconcile_amount_by_currency",
+        "check_order": 32,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "USD: raw без списанных 115563208.38 = витрина 115563208.38 (в валюте кредита)",
+        "check_name": "reconcile_amount_by_currency",
+        "check_order": 32,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "KZT: raw без списанных 430686458123.00 = витрина 430686458123.00 (в валюте кредита)",
+        "check_name": "reconcile_amount_by_currency",
+        "check_order": 32,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "USD: raw без списанных 111985713.98 = витрина 111985713.98 (в валюте кредита)",
+        "check_name": "reconcile_amount_by_currency",
+        "check_order": 32,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "raw × курс на дату = 498153228694.573000 ₸, витрина = 498153228694.573000 ₸",
+        "check_name": "reconcile_portfolio_kzt",
+        "check_order": 33,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "raw × курс на дату = 484674770832.758000 ₸, витрина = 484674770832.758000 ₸",
+        "check_name": "reconcile_portfolio_kzt",
+        "check_order": 33,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "PAR90 6.24% ≤ PAR30 12.05%; PAR90 ≤ NPL 11.85%",
+        "check_name": "risk_ordering",
+        "check_order": 41,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "PAR90 4.46% ≤ PAR30 10.33%; PAR90 ≤ NPL 10.01%",
+        "check_name": "risk_ordering",
+        "check_order": 41,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "реструктуризированных: 93, из них с просрочкой ≤ 90 дн.: 93; не в NPL или ставка не 50%: 0",
+        "check_name": "restructured_is_npl_50pct",
+        "check_order": 42,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "реструктуризированных: 93, из них с просрочкой ≤ 90 дн.: 93; не в NPL или ставка не 50%: 0",
+        "check_name": "restructured_is_npl_50pct",
+        "check_order": 42,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "просрочка ровно 30 дн.: 0, ровно 90 дн.: 4 (по определению не в PAR30 / PAR90); нарушений границ и шкалы: 0",
+        "check_name": "dpd_boundaries",
+        "check_order": 43,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "просрочка ровно 30 дн.: 2, ровно 90 дн.: 0 (по определению не в PAR30 / PAR90); нарушений границ и шкалы: 0",
+        "check_name": "dpd_boundaries",
+        "check_order": 43,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "провизии 7.33% портфеля (допустимо 1–50%)",
+        "check_name": "provision_bounds",
+        "check_order": 44,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "провизии 6.43% портфеля (допустимо 1–50%)",
+        "check_name": "provision_bounds",
+        "check_order": 44,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "program: сегментов — 4; суммы портфеля, NPL и провизий равны итогу",
+        "check_name": "segments_sum_to_total",
+        "check_order": 51,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "sector: сегментов — 6; суммы портфеля, NPL и провизий равны итогу",
+        "check_name": "segments_sum_to_total",
+        "check_order": 51,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "program: сегментов — 4; суммы портфеля, NPL и провизий равны итогу",
+        "check_name": "segments_sum_to_total",
+        "check_order": 51,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "sector: сегментов — 6; суммы портфеля, NPL и провизий равны итогу",
+        "check_name": "segments_sum_to_total",
+        "check_order": 51,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "топ-10 групп: 17.04% портфеля; для сравнения топ-10 отдельных заёмщиков: 10.99%",
+        "check_name": "top10_groups",
+        "check_order": 52,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "PASS",
+        "details": "топ-10 групп: 17.02% портфеля; для сравнения топ-10 отдельных заёмщиков: 10.93%",
+        "check_name": "top10_groups",
+        "check_order": 52,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "PASS",
+        "details": "кредитов, у которых между срезами поменялись заёмщик, группа, отрасль, программа, валюта или даты: 0",
+        "check_name": "loan_attributes_stable",
+        "check_order": 61,
+        "report_date": null
+    },
+    {
+        "status": "PASS",
+        "details": "заёмщиков в нескольких группах: 0",
+        "check_name": "borrower_single_group",
+        "check_order": 62,
+        "report_date": null
+    },
+    {
+        "status": "PASS",
+        "details": "кредитов: 0, 0.00 млрд ₸ (0.00% портфеля). Если «списание верное: кредита в портфеле нет»: NPL 11.85% → 11.85%, PAR90 6.24% → 6.24%, провизии 36.51 → 36.51 млрд ₸",
+        "check_name": "written_off_reversed",
+        "check_order": 63,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "WARN",
+        "details": "кредитов: 23, 5.68 млрд ₸ (1.17% портфеля). Если «списание верное: кредита в портфеле нет»: NPL 10.01% → 9.51%, PAR90 4.46% → 3.90%, провизии 31.17 → 29.66 млрд ₸",
+        "check_name": "written_off_reversed",
+        "check_order": 63,
+        "report_date": "2026-10-01"
+    },
+    {
+        "status": "WARN",
+        "details": "кредитов: 414, 96.92 млрд ₸ (19.46% портфеля). Если «просрочка считается с даты погашения»: NPL 11.85% → 28.30%, PAR90 6.24% → 23.24%, провизии 36.51 → 76.73 млрд ₸",
+        "check_name": "matured_dpd_inconsistent",
+        "check_order": 64,
+        "report_date": "2026-09-01"
+    },
+    {
+        "status": "WARN",
+        "details": "кредитов: 434, 97.91 млрд ₸ (20.20% портфеля). Если «просрочка считается с даты погашения»: NPL 10.01% → 27.39%, PAR90 4.46% → 22.39%, провизии 31.17 → 72.60 млрд ₸",
+        "check_name": "matured_dpd_inconsistent",
+        "check_order": 64,
+        "report_date": "2026-10-01"
+    }
+]

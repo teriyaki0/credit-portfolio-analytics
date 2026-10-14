@@ -16,7 +16,7 @@ services:
       retries: 30
 
   # Применяет sql/*.sql по порядку, сверяет число строк в raw с CSV, печатает проверки
-  # (падает на FAIL) и прогоняет мутационные тесты проверок.
+  # (падает на FAIL), прогоняет мутационные тесты проверок и выгружает данные дашборда.
   # Повторный запуск безопасен: docker compose run --rm loader
   loader:
     image: postgres:16
@@ -34,7 +34,20 @@ services:
       - ./data:/data:ro
       - ./scripts:/scripts:ro
       - ./tests:/tests:ro
+      - ./dashboard/data:/out
     entrypoint: ["sh", "/scripts/load.sh"]
+
+  # Независимый пересчёт метрик из CSV на Python (без SQL) и сверка с выгрузкой для дашборда.
+  verify:
+    image: python:3.11-slim
+    depends_on:
+      loader:
+        condition: service_completed_successfully
+    volumes:
+      - ./data:/data:ro
+      - ./scripts:/scripts:ro
+      - ./dashboard/data:/out:ro
+    entrypoint: ["python", "-I", "/scripts/verify.py"]
 
 volumes:
   pgdata:

@@ -1,0 +1,202 @@
+[
+    {
+        "loans": 9,
+        "share": 0.04344330857537964370,
+        "npl_kzt": 351160104.00,
+        "group_id": "G0004",
+        "borrowers": 5,
+        "report_date": "2026-09-01",
+        "exposure_kzt": 21641424432.00,
+        "exposure_rank": 1
+    },
+    {
+        "loans": 14,
+        "share": 0.03356930632983003815,
+        "npl_kzt": 2627397137.727000,
+        "group_id": "G0001",
+        "borrowers": 5,
+        "report_date": "2026-09-01",
+        "exposure_kzt": 16722658333.242000,
+        "exposure_rank": 2
+    },
+    {
+        "loans": 10,
+        "share": 0.02433230042596941898,
+        "npl_kzt": 0,
+        "group_id": "G0005",
+        "borrowers": 6,
+        "report_date": "2026-09-01",
+        "exposure_kzt": 12121214018.763000,
+        "exposure_rank": 3
+    },
+    {
+        "loans": 7,
+        "share": 0.01562080505602025441,
+        "npl_kzt": 4674622077.243000,
+        "group_id": "G0003",
+        "borrowers": 3,
+        "report_date": "2026-09-01",
+        "exposure_kzt": 7781554473.465000,
+        "exposure_rank": 4
+    },
+    {
+        "loans": 3,
+        "share": 0.01152988998596160803,
+        "npl_kzt": 0,
+        "group_id": "G2277",
+        "borrowers": 1,
+        "report_date": "2026-09-01",
+        "exposure_kzt": 5743651923.00,
+        "exposure_rank": 5
+    },
+    {
+        "loans": 3,
+        "share": 0.00912515699337777318,
+        "npl_kzt": 0,
+        "group_id": "G2208",
+        "borrowers": 1,
+        "report_date": "2026-09-01",
+        "exposure_kzt": 4545726418.596000,
+        "exposure_rank": 6
+    },
+    {
+        "loans": 5,
+        "share": 0.00903210891915878745,
+        "npl_kzt": 0,
+        "group_id": "G1995",
+        "borrowers": 1,
+        "report_date": "2026-09-01",
+        "exposure_kzt": 4499374220.00,
+        "exposure_rank": 7
+    },
+    {
+        "loans": 7,
+        "share": 0.00840353197695254839,
+        "npl_kzt": 0,
+        "group_id": "G0002",
+        "borrowers": 5,
+        "report_date": "2026-09-01",
+        "exposure_kzt": 4186246586.757000,
+        "exposure_rank": 8
+    },
+    {
+        "loans": 5,
+        "share": 0.00790818837674416490,
+        "npl_kzt": 25374701.00,
+        "group_id": "G1839",
+        "borrowers": 1,
+        "report_date": "2026-09-01",
+        "exposure_kzt": 3939489573.00,
+        "exposure_rank": 9
+    },
+    {
+        "loans": 3,
+        "share": 0.00746245423068257379,
+        "npl_kzt": 0,
+        "group_id": "G2002",
+        "borrowers": 1,
+        "report_date": "2026-09-01",
+        "exposure_kzt": 3717445669.00,
+        "exposure_rank": 10
+    },
+    {
+        "loans": 9,
+        "share": 0.04340532186739134569,
+        "npl_kzt": 341384540.00,
+        "group_id": "G0004",
+        "borrowers": 5,
+        "report_date": "2026-10-01",
+        "exposure_kzt": 21037464429.00,
+        "exposure_rank": 1
+    },
+    {
+        "loans": 14,
+        "share": 0.03363144557562413378,
+        "npl_kzt": 93442926.438000,
+        "group_id": "G0001",
+        "borrowers": 5,
+        "report_date": "2026-10-01",
+        "exposure_kzt": 16300313177.140000,
+        "exposure_rank": 2
+    },
+    {
+        "loans": 10,
+        "share": 0.02406309162996305325,
+        "npl_kzt": 0,
+        "group_id": "G0005",
+        "borrowers": 6,
+        "report_date": "2026-10-01",
+        "exposure_kzt": 11662773421.280000,
+        "exposure_rank": 3
+    },
+    {
+        "loans": 7,
+        "share": 0.01527846258652320205,
+        "npl_kzt": 4658381884.800000,
+        "group_id": "G0003",
+        "borrowers": 3,
+        "report_date": "2026-10-01",
+        "exposure_kzt": 7405085352.800000,
+        "exposure_rank": 4
+    },
+    {
+        "loans": 3,
+        "share": 0.01136460133160229761,
+        "npl_kzt": 0,
+        "group_id": "G2277",
+        "borrowers": 1,
+        "report_date": "2026-10-01",
+        "exposure_kzt": 5508135546.00,
+        "exposure_rank": 5
+    },
+    {
+        "loans": 3,
+        "share": 0.00908833634334136106,
+        "npl_kzt": 0,
+        "group_id": "G2208",
+        "borrowers": 1,
+        "report_date": "2026-10-01",
+        "exposure_kzt": 4404887334.460000,
+        "exposure_rank": 6
+    },
+    {
+        "loans": 5,
+        "share": 0.00885757517896750311,
+        "npl_kzt": 0,
+        "group_id": "G1995",
+        "borrowers": 1,
+        "report_date": "2026-10-01",
+        "exposure_kzt": 4293043220.00,
+        "exposure_rank": 7
+    },
+    {
+        "loans": 7,
+        "share": 0.00832513492173974167,
+        "npl_kzt": 0,
+        "group_id": "G0002",
+        "borrowers": 5,
+        "report_date": "2026-10-01",
+        "exposure_kzt": 4034982860.346000,
+        "exposure_rank": 8
+    },
+    {
+        "loans": 12,
+        "share": 0.00825828863433275900,
+        "npl_kzt": 1300205757.00,
+        "group_id": "G0013",
+        "borrowers": 5,
+        "report_date": "2026-10-01",
+        "exposure_kzt": 4002584151.316000,
+        "exposure_rank": 9
+    },
+    {
+        "loans": 5,
+        "share": 0.00789573530395395506,
+        "npl_kzt": 24576045.00,
+        "group_id": "G1839",
+        "borrowers": 1,
+        "report_date": "2026-10-01",
+        "exposure_kzt": 3826863699.00,
+        "exposure_rank": 10
+    }
+]

@@ -7,7 +7,8 @@
 ## Запуск
 
 ```sh
-docker compose run --rm loader   # поднимает Postgres, применяет sql/*.sql по порядку
+docker compose run --rm loader   # Postgres, sql/*.sql по порядку, проверки, мутационные тесты, выгрузка JSON
+docker compose run --rm verify   # то же + независимый пересчёт из CSV на Python и сверка с выгрузкой
 docker compose exec db psql -U bi -d credit
 ```
 
