@@ -1,0 +1,92 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Ключевые метрики на последнюю дату среза и изменение к предыдущей: сетка плиток 3 × 2. Источник: reporting.v_risk_metrics_change.",
+  "data": {"url": "data/risk_metrics_change.json"},
+  "params": [
+    {"name": "tile_w", "value": 236},
+    {"name": "tile_h", "value": 108},
+    {"name": "gap", "value": 12}
+  ],
+  "transform": [
+    {"calculate": "time(toDate(datum.report_date))", "as": "t"},
+    {"joinaggregate": [{"op": "max", "field": "t", "as": "t_last"}]},
+    {"filter": "datum.t === datum.t_last"},
+    {"calculate": "(datum.sort_order - 1) % 3 * (tile_w + gap)", "as": "x0"},
+    {"calculate": "floor((datum.sort_order - 1) / 3) * (tile_h + gap)", "as": "y0"},
+    {"calculate": "datum.x0 + tile_w", "as": "x1"},
+    {"calculate": "datum.y0 + tile_h", "as": "y1"},
+    {"calculate": "datum.x0 + 14", "as": "tx"},
+    {"calculate": "slice(datum.prev_date, 8, 10) + '.' + slice(datum.prev_date, 5, 7) + '.' + slice(datum.prev_date, 0, 4)", "as": "prev_label"},
+    {"calculate": "datum.kind === 'ratio' ? format(datum.value, '.2%') : format(datum.value / 1e9, ',.1f') + ' млрд ₸'", "as": "value_text"},
+    {"calculate": "'на ' + datum.prev_label + ': ' + (datum.kind === 'ratio' ? format(datum.prev_value, '.2%') : format(datum.prev_value / 1e9, ',.1f') + ' млрд ₸')", "as": "prev_text"},
+    {"calculate": "(datum.change > 0 ? '▲ +' : datum.change < 0 ? '▼ −' : '') + (datum.kind === 'ratio' ? format(abs(datum.change) * 100, '.2f') + ' п.п.' : format(abs(datum.change) / 1e9, ',.1f') + ' млрд ₸ (' + (datum.change < 0 ? '−' : '+') + format(abs(datum.change_pct), '.1%') + ')')", "as": "delta_text"},
+    {"calculate": "(datum.metric === 'portfolio_kzt' || (datum.kind === 'ratio' && abs(datum.change) < 0.0005)) ? 'neutral' : (datum.change < 0 ? 'good' : 'bad')", "as": "tone"}
+  ],
+  "width": 732,
+  "height": 228,
+  "layer": [
+    {
+      "mark": {"type": "rect", "style": "kpi-tile"},
+      "encoding": {
+        "x": {"field": "x0", "type": "quantitative", "scale": null},
+        "x2": {"field": "x1"},
+        "y": {"field": "y0", "type": "quantitative", "scale": null},
+        "y2": {"field": "y1"}
+      }
+    },
+    {
+      "transform": [{"calculate": "datum.y0 + 14", "as": "ty"}],
+      "mark": {"type": "text", "style": "kpi-label", "align": "left", "baseline": "top"},
+      "encoding": {
+        "x": {"field": "tx", "type": "quantitative", "scale": null},
+        "y": {"field": "ty", "type": "quantitative", "scale": null},
+        "text": {"field": "label"}
+      }
+    },
+    {
+      "transform": [{"calculate": "datum.y0 + 34", "as": "ty"}],
+      "mark": {"type": "text", "style": "kpi-value", "align": "left", "baseline": "top"},
+      "encoding": {
+        "x": {"field": "tx", "type": "quantitative", "scale": null},
+        "y": {"field": "ty", "type": "quantitative", "scale": null},
+        "text": {"field": "value_text"}
+      }
+    },
+    {
+      "transform": [{"filter": "datum.tone === 'good'"}, {"calculate": "datum.y0 + 68", "as": "ty"}],
+      "mark": {"type": "text", "style": "delta-good", "align": "left", "baseline": "top"},
+      "encoding": {
+        "x": {"field": "tx", "type": "quantitative", "scale": null},
+        "y": {"field": "ty", "type": "quantitative", "scale": null},
+        "text": {"field": "delta_text"}
+      }
+    },
+    {
+      "transform": [{"filter": "datum.tone === 'bad'"}, {"calculate": "datum.y0 + 68", "as": "ty"}],
+      "mark": {"type": "text", "style": "delta-bad", "align": "left", "baseline": "top"},
+      "encoding": {
+        "x": {"field": "tx", "type": "quantitative", "scale": null},
+        "y": {"field": "ty", "type": "quantitative", "scale": null},
+        "text": {"field": "delta_text"}
+      }
+    },
+    {
+      "transform": [{"filter": "datum.tone === 'neutral'"}, {"calculate": "datum.y0 + 68", "as": "ty"}],
+      "mark": {"type": "text", "style": "delta-neutral", "align": "left", "baseline": "top"},
+      "encoding": {
+        "x": {"field": "tx", "type": "quantitative", "scale": null},
+        "y": {"field": "ty", "type": "quantitative", "scale": null},
+        "text": {"field": "delta_text"}
+      }
+    },
+    {
+      "transform": [{"calculate": "datum.y0 + 88", "as": "ty"}],
+      "mark": {"type": "text", "style": "kpi-prev", "align": "left", "baseline": "top"},
+      "encoding": {
+        "x": {"field": "tx", "type": "quantitative", "scale": null},
+        "y": {"field": "ty", "type": "quantitative", "scale": null},
+        "text": {"field": "prev_text"}
+      }
+    }
+  ]
+}

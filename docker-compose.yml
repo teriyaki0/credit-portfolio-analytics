@@ -50,5 +50,13 @@ services:
       - ./dashboard/data:/out:ro
     entrypoint: ["python", "-I", "/scripts/verify.py"]
 
+  # Статичный дашборд: index.html + спеки Vega-Lite + выгруженные JSON. http://localhost:8080
+  web:
+    image: nginx:1.25-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./dashboard:/usr/share/nginx/html:ro
+
 volumes:
   pgdata:

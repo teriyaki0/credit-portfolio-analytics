@@ -1,0 +1,103 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Портфель и NPL по программам. Источник: reporting.v_risk_by_segment (segment_type = program), линия — NPL всего портфеля из reporting.v_risk_metrics.",
+  "title": {"text": "По программам", "subtitle": "Портфель на последнюю дату и NPL программы по срезам; линия — NPL всего портфеля"},
+  "data": {"url": "data/risk_by_segment.json"},
+  "transform": [
+    {"filter": "datum.segment_type === 'program'"},
+    {"calculate": "slice(datum.report_date, 8, 10) + '.' + slice(datum.report_date, 5, 7) + '.' + slice(datum.report_date, 0, 4)", "as": "date_label"},
+    {"calculate": "time(toDate(datum.report_date))", "as": "t"},
+    {"joinaggregate": [{"op": "max", "field": "t", "as": "t_last"}]},
+    {"calculate": "datum.t === datum.t_last ? datum.portfolio_kzt : 0", "as": "last_portfolio_kzt"},
+    {"joinaggregate": [{"op": "max", "field": "last_portfolio_kzt", "as": "segment_size"}], "groupby": ["segment"]},
+    {"calculate": "datum.portfolio_kzt / 1e9", "as": "portfolio_bn"}
+  ],
+  "spacing": 16,
+  "resolve": {"scale": {"y": "shared"}},
+  "hconcat": [
+    {
+      "width": 280,
+      "height": {"step": 30},
+      "transform": [{"filter": "datum.t === datum.t_last"}],
+      "encoding": {
+        "y": {
+          "field": "segment",
+          "type": "nominal",
+          "sort": {"field": "segment_size", "op": "max", "order": "descending"},
+          "title": null,
+          "axis": {"domain": false, "ticks": false, "labelPadding": 8}
+        },
+        "x": {
+          "field": "portfolio_bn",
+          "type": "quantitative",
+          "title": "Портфель, млрд ₸",
+          "axis": {"tickCount": 3, "format": ",.0f"}
+        }
+      },
+      "layer": [
+        {
+          "mark": {"type": "bar"},
+          "encoding": {
+            "tooltip": [
+              {"field": "segment", "title": "Программа"},
+              {"field": "date_label", "title": "Дата среза"},
+              {"field": "portfolio_bn", "title": "Портфель, млрд ₸", "format": ",.1f"},
+              {"field": "portfolio_share", "title": "Доля портфеля", "format": ".1%"},
+              {"field": "loans", "title": "Кредитов"}
+            ]
+          }
+        },
+        {
+          "mark": {"type": "text", "style": "value-label", "align": "left", "dx": 4},
+          "encoding": {"text": {"field": "portfolio_bn", "format": ",.0f"}}
+        }
+      ]
+    },
+    {
+      "width": 380,
+      "height": {"step": 30},
+      "layer": [
+        {
+          "mark": {"type": "rule", "style": "dumbbell-link"},
+          "encoding": {
+            "y": {"field": "segment", "type": "nominal", "sort": {"field": "segment_size", "op": "max", "order": "descending"}, "axis": null},
+            "x": {"aggregate": "min", "field": "npl_ratio", "type": "quantitative"},
+            "x2": {"aggregate": "max", "field": "npl_ratio"}
+          }
+        },
+        {
+          "data": {"url": "data/risk_metrics.json"},
+          "transform": [
+            {"calculate": "time(toDate(datum.report_date))", "as": "t"},
+            {"joinaggregate": [{"op": "max", "field": "t", "as": "t_last"}]},
+            {"filter": "datum.t === datum.t_last"}
+          ],
+          "mark": {"type": "rule", "style": "reference"},
+          "encoding": {"x": {"field": "npl_ratio", "type": "quantitative"}}
+        },
+        {
+          "mark": {"type": "point"},
+          "encoding": {
+            "y": {"field": "segment", "type": "nominal", "sort": {"field": "segment_size", "op": "max", "order": "descending"}, "axis": null},
+            "x": {
+              "field": "npl_ratio",
+              "type": "quantitative",
+              "title": "NPL, % портфеля программы",
+              "scale": {"zero": true},
+              "axis": {"format": ".0%", "tickCount": 4}
+            },
+            "color": {"field": "date_label", "type": "ordinal", "title": "Дата среза"},
+            "tooltip": [
+              {"field": "segment", "title": "Программа"},
+              {"field": "date_label", "title": "Дата среза"},
+              {"field": "npl_ratio", "title": "NPL", "format": ".2%"},
+              {"field": "par90_ratio", "title": "PAR90", "format": ".2%"},
+              {"field": "par30_ratio", "title": "PAR30", "format": ".2%"},
+              {"field": "provision_ratio", "title": "Провизии / портфель", "format": ".2%"}
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
