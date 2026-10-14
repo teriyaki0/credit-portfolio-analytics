@@ -132,6 +132,7 @@
 
   <section class="card">
     <div id="kpi" class="chart"></div>
+    <p class="note" id="kpi-note" hidden></p>
   </section>
 
   <div class="grid-2">
@@ -325,6 +326,14 @@
     ]);
 
     const count = (s) => checks.filter((c) => c.status === s).length;
+
+    // Зелёная стрелка у KPI не должна выглядеть безусловным улучшением, если есть предупреждения.
+    if (count("WARN") > 0) {
+      const note = document.getElementById("kpi-note");
+      note.hidden = false;
+      note.textContent = `Предупреждений о качестве данных: ${count("WARN")}. Метрики посчитаны по определению; ` +
+        "как они изменятся, если источник подтвердит аномалии, — в блоке «Качество данных» внизу.";
+    }
     document.getElementById("checks-summary").innerHTML =
       `<span class="pill">Проверок: <b>${checks.length}</b></span>` +
       `<span class="pill">PASS: <b>${count("PASS")}</b></span>` +
